@@ -1,5 +1,7 @@
 const ModelUtil = require('./ModelUtil');
+const ModelConverter = require('./ModelConverter');
 const DbConfig = require(__basedir + '/config/dbConfig');
+const Status = require('../../../enuns/Status');
 
 const configDb = DbConfig.app;
 const replicar = configDb.replicar !== undefined ? configDb.replicar : false;
@@ -11,7 +13,7 @@ module.exports = {
     const nomeTabela = model.nomeTabela;
     const campoChave = model.getChavePrimaria();
 
-    ModelUtil.validarInsertUpdate(dao, campoChave, nomeTabela, dados, 'insert');
+    await ModelUtil.validarInsertUpdate(dao, nomeTabela, dados, Status.INSERT, campoChave);
 
     if (campoChave[1].chavePrimaria.autoIncremento) {
       const id = await gerarId(dao, nomeTabela, campoChave);
@@ -28,11 +30,14 @@ module.exports = {
       params.push('?');
     });
 
+    await model.onAntesPersistir(dao, dados, Status.INSERT);
+
     const sql = `INSERT INTO ${nomeTabela} (${campos.join(', ')}) VALUES (${params.join(', ')});`;
-    console.log(sql)
-    console.log(valores)
-    const result = await dao.executarSql(sql, valores);
-    console.log(result);
+    await dao.executarSql(sql, valores);
+
+    await model.onDepoisPersistir(dao, dados, Status.INSERT);
+
+    return await ModelConverter.criarModel(dados);
   },
 
 }

@@ -14,7 +14,7 @@ module.exports = {
 
       const sql = "alter table " + config.nomeTabela + " "
         + "add constraint " + nomeFk + " "
-        + "foreign key (" + config.nomeCampoTabelaFk + ") "
+        + "foreign key (" + config.nomeCampoFk + ") "
         + "references " + config.nomeTabelaFk + " (" + config.nomeCampoTabelaFk + ") "
         + "on update " + onUpdate + " "
         + "on delete " + onDelete;

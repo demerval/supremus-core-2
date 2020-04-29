@@ -1,6 +1,7 @@
 const models = new Map();
 
 class ModelManager {
+
   static addModel(model) {
     const modelExiste = models.get(model.getNome());
     if (modelExiste !== undefined) {
@@ -11,7 +12,12 @@ class ModelManager {
   }
 
   static getModel(nome) {
-    return models.get(nome);
+    const model = models.get(nome.toLowerCase());
+    if (model !== undefined) {
+      return model;
+    }
+
+    throw new Error(`Model não localizado: ${nome}`);
   }
 
   static getModels() {

@@ -1,11 +1,16 @@
+const Status = require('../../../enuns/Status');
+
 module.exports = {
 
-  async validarInsertUpdate(dao, nomeTabela, chavePrimaria, dados, status) {
+  async validarInsertUpdate(dao, nomeTabela, dados, status, campoChave) {
     let campos = [];
     let valores = [];
+    let chave = null;
 
     for (let values of dados) {
-      if (values[3] === true) {
+      if (values[4] === true) {
+        chave = values;
+      } else if (values[3] === true) {
         campos.push(`${values[1]} = ? `);
         valores.push(values[2]);
       }
@@ -15,11 +20,14 @@ module.exports = {
       return true;
     }
 
-    let chave = chavePrimaria[1].nome;
-    let sql = `SELECT ${chave} FROM ${nomeTabela} WHERE (${campos.join(' OR ')})`;
-    if (status === 'update') {
-      sql += ` AND ${chave} <> ?`;
-      valores.push(getValorChavePrimaria(chave[0], dados)[2]);
+    if (status === Status.INSERT) {
+      chave = [0, campoChave[1].getNome()];
+    }
+
+    let sql = `SELECT ${chave[1]} FROM ${nomeTabela} WHERE (${campos.join(' OR ')})`;
+    if (status === Status.UPDATE) {
+      sql += ` AND ${chave[1]} <> ?`;
+      valores.push(chave[2]);
     }
 
     let rows = await dao.executarSql(sql, valores);
@@ -30,8 +38,4 @@ module.exports = {
     return true;
   },
 
-}
-
-function getValorChavePrimaria(key, dados) {
-  return dados.find(d => d[0] === key);
 }

@@ -3,10 +3,9 @@ const moment = require('moment');
 
 class CampoDate extends Campo {
 
-  constructor(config) {
-    super(config);
-    this.dataUpdate = config.dataUpdate || false;
-    this.tipo = this.dataUpdate === true ? 'BIGINT' : 'DATE';
+  constructor(config, dataUpdate) {
+    super(config, dataUpdate === true ? Campo.FieldType().BIG_INT : Campo.FieldType().DATE);
+    this.dataUpdate = dataUpdate || false;
   }
 
   isDateUpdate() {
@@ -15,23 +14,23 @@ class CampoDate extends Campo {
 
   getDados(valor, key) {
     if (valor instanceof Array) {
-      return [key, this.nome, valor, this.unico];
+      return [key, this.nome, valor, this.unico, this.isChavePrimaria()];
     }
 
     if (valor === undefined || valor === null) {
       if (this.obrigatorio === true) {
         if (this.valorPadrao !== null) {
-          return [key, this.nome, this.valorPadrao, this.unico];
+          return [key, this.nome, this.valorPadrao, this.unico, this.isChavePrimaria()];
         }
 
         throw new Error(`O valor é obrigatório, campo: ${key}`);
       }
 
       if (this.dataUpdate === true) {
-        return [key, this.nome, new Date().getTime(), this.unico];
+        return [key, this.nome, new Date().getTime(), this.unico, this.isChavePrimaria()];
       }
 
-      return [key, this.nome, 'NULL', this.unico];
+      return [key, this.nome, null, this.unico, this.isChavePrimaria()];
     }
 
     if (this.dataUpdate === true) {
@@ -39,18 +38,18 @@ class CampoDate extends Campo {
         throw new Error(`O campo ${key} tem que ser um número.`);
       }
 
-      return [key, this.nome, valor, this.unico];
+      return [key, this.nome, valor, this.unico, this.isChavePrimaria()];
     }
 
     if (valor instanceof Date) {
-      return [key, this.nome, `'${moment(date).format('YYYY-MM-DD')}'`, this.unico];
+      return [key, this.nome, `${moment(date).format('YYYY-MM-DD')}`, this.unico, this.isChavePrimaria()];
     }
 
     if (moment(valor, 'DD/MM/YYYY', true).isValid() === false) {
       throw new Error(`A data do campo ${key} não é válida: ${valor}`);
     }
 
-    return [key, this.nome, `'${moment(valor).format('YYYY-MM-DD')}'`, this.unico];
+    return [key, this.nome, `${moment(valor, 'DD/MM/YYYY').format('YYYY-MM-DD')}`, this.unico, this.isChavePrimaria()];
   }
 
   getValorSql(valor) {
@@ -70,7 +69,7 @@ class CampoDate extends Campo {
       throw new Error(`A data do campo ${key} não é válida: ${valor}`);
     }
 
-    return `'${moment(valor).format('YYYY-MM-DD')}'`;
+    return `'${moment(valor, 'DD/MM/YYYY').format('YYYY-MM-DD')}'`;
   }
 }
 

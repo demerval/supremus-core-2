@@ -1,26 +1,28 @@
 const Campo = require("./abstract/Campo");
 const CaseType = require('../../enuns/CaseType');
+const md5 = require('js-md5');
 
 class CampoString extends Campo {
-  constructor(config) {
+  constructor(config, password) {
     super(config);
+    this.password = password || false;
   }
 
   getDados(valor, key) {
     if (valor instanceof Array) {
-      return [key, this.nome, valor, this.unico];
+      return [key, this.nome, valor, this.unico, this.isChavePrimaria()];
     }
 
     if (valor === undefined || valor === null) {
       if (this.obrigatorio === true) {
         if (this.valorPadrao !== null) {
-          return [key, this.nome, this.valorPadrao, this.unico];
+          return [key, this.nome, this.valorPadrao, this.unico, this.isChavePrimaria()];
         }
 
         throw new Error(`O valor é obrigatório, campo: ${key}`);
       }
 
-      return [key, this.nome, 'NULL', this.unico];
+      return [key, this.nome, null, this.unico, this.isChavePrimaria()];
     }
 
     if (typeof valor !== 'string') {
@@ -37,17 +39,21 @@ class CampoString extends Campo {
 
     switch (this.getTipoCaracter()) {
       case CaseType.NONE:
-        return [key, this.nome, valor, this.unico];
+        return [key, this.nome, this.password === true ? md5.base64(valor) : valor, this.unico, this.isChavePrimaria()];
       case CaseType.LOWER:
-        return [key, this.nome, valor.toLowerCase(), this.unico];
+        return [key, this.nome, this.password === true ? md5.base64(valor.toLowerCase()) : valor.toLowerCase(), this.unico, this.isChavePrimaria()];
       default:
-        return [key, this.nome, valor.toUpperCase(), this.unico];
+        return [key, this.nome, this.password === true ? md5.base64(valor.toUpperCase()) : valor.toUpperCase(), this.unico, this.isChavePrimaria()];
     }
   }
 
   getValorSql(valor) {
     if (valor === undefined || valor === null) {
       return 'NULL';
+    }
+
+    if (this.password === true) {
+      return `'${md5.base64(valor)}'`;
     }
 
     return `'${valor}'`;

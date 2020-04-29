@@ -1,5 +1,7 @@
 const TabelaUtil = require('./TabelaUtil');
 const CriarTabela = require('./CriarTabela');
+const ChavePrimariaUtil = require('./ChavePrimariaUtil');
+const ChaveEstrangeiraUtil = require('./ChaveEstrangeiraUtil');
 
 module.exports = {
 
@@ -22,17 +24,93 @@ module.exports = {
       return true;
     }
 
-    await this._ajustarTabela(config);
+    await this._ajustarTabela(dao, config);
     return await TabelaUtil.atualizarVersaoTabela(dao, config);
   },
 
   async _ajustarTabela(dao, config) {
-    const campos = config.getCampos();
+    const campos = config.campos.values();
     for (let campo of campos) {
-      if (campo.getTipo() !== 'varchar') {
-        continue;
+      await this._verificarCampo(dao, config, campo);
+    }
+
+    return true;
+  },
+
+  async _verificarCampo(dao, config, campo) {
+    let sql = "SELECT RDB$RELATION_NAME, RDB$FIELD_NAME FROM RDB$RELATION_FIELDS "
+      + "WHERE RDB$FIELD_NAME = '" + campo.getNome() + "' AND "
+      + "RDB$RELATION_NAME = '" + config.nomeTabela + "';";
+
+    let rows = await dao.executarSql(sql);
+    if (rows.length === 0) {
+      return this._criarCampo(dao, config, campo);
+    }
+    if (campo.getTipo() === 'varchar') {
+      return this._ajustarCampo(dao, config.nomeTabela, campo);
+    }
+
+    return true;
+  },
+
+  async _criarCampo(dao, config, campo) {
+    let tipo = campo.getTipo().toUpperCase();
+    let sql = "ALTER TABLE " + config.nomeTabela + " ADD "
+      + campo.getNome() + " " + tipo;
+    if (tipo === "VARCHAR") {
+      sql += "(" + campo.getTamanhoMaximo() + ")";
+    }
+    if (tipo === 'NUMERIC') {
+      sql += '(18, ' + campo.getDecimal() + ')'
+    }
+    if (tipo === 'BLOB') {
+      sql += ' SUB_TYPE 1 SEGMENT SIZE 80';
+    }
+    if (campo.isObrigatorio() === true || campo.isChavePrimaria() === true) {
+      sql += " NOT NULL";
+    }
+    sql += ";";
+
+    await dao.executarSql(sql);
+
+    if (campo.isChavePrimaria() === true) {
+      const chavePrimaria = campo.getChavePrimaria();
+
+      const sqlCriarPrimaryKey = "ALTER TABLE " + config.nomeTabela + " "
+        + "ADD CONSTRAINT PK_" + config.nomeTabela + " "
+        + "PRIMARY KEY (" + campo.getNome() + ");";
+
+      config.configChavePrimaria = {
+        nomeTabela: config.nomeTabela,
+        sql: sqlCriarPrimaryKey,
       }
-      await this._ajustarCampo(dao, config.getNomeTabela(), campo);
+
+      if (chavePrimaria.autoIncremento) {
+        const nomeGerador = chavePrimaria.nomeGerador ? chavePrimaria.nomeGerador : `${config.nomeTabela}_GEN`;
+        const sqlCriarGenerator = "CREATE SEQUENCE " + nomeGerador + ";";
+        config.configGerador = {
+          nomeGerador,
+          sql: sqlCriarGenerator,
+        }
+      }
+
+      await ChavePrimariaUtil.criarChavePrimaria(dao, config.configChavePrimaria);
+    }
+
+    if (campo.isChaveEstrangeira() === true) {
+      const chaveEstrangeira = campo.getChaveEstrangeira();
+      const chave = {
+        nomeTabela: config.nomeTabela,
+        nomeTabelaFk: chaveEstrangeira.nomeTabela.toUpperCase(),
+        nomeCampoFk: campo.getNome(),
+        nomeCampoTabelaFk: chaveEstrangeira.nomeCampo.toUpperCase(),
+        onUpdate: chaveEstrangeira.onUpdate,
+        onDelete: chaveEstrangeira.onDelete,
+      }
+
+      config.configChaveEstrangeira.push(chave);
+
+      await ChaveEstrangeiraUtil.criar(dao, config.configChaveEstrangeira);
     }
 
     return true;

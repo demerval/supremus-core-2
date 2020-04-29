@@ -13,9 +13,9 @@ campos.set("idUsuario", new CampoNumber({
   }
 }));
 campos.set("permissao", new CampoString({ nome: "permissao", obrigatorio: true }));
-campos.set('dataAlteracao', new CampoDate({ nome: 'dt_alteracao', dataUpdate: true }));
+campos.set('dataAlteracao', new CampoDate({ nome: 'dt_alteracao' }, true));
 
 
-const UsuarioPermissaoModel = new Model("usuarioPermissao", "usuarios_permissao", campos, 1);
+const UsuarioPermissaoModel = new Model("usuarioPermissao", "usuarios_permissao", campos, 1, false);
 
 module.exports = UsuarioPermissaoModel;

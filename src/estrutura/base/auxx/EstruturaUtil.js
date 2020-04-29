@@ -4,7 +4,7 @@ class EstruturaUtil {
     let config = {
       nomeTabela: model.getNomeTabela(),
       versao: model.getVersao(),
-      campos: model.getCampos().values(),
+      campos: model.getCampos(),
       configChaveEstrangeira: [],
       onEstruturaVerificada: model.onEstruturaVerificada,
     }
@@ -20,14 +20,18 @@ class EstruturaUtil {
     sql.push(config.nomeTabela);
     sql.push(" (");
 
-    for (let campo of config.campos) {
-      let tipo = campo.getTipo();
+    const campos = config.campos.values();
+    for (let campo of campos) {
+      let tipo = campo.getTipo().toUpperCase();
 
       sql.push(campo.getNome());
       sql.push(' ');
       sql.push(tipo);
       if (tipo === 'VARCHAR') {
         sql.push('(' + campo.getTamanhoMaximo() + ')');
+      }
+      if (tipo === 'NUMERIC') {
+        sql.push('(18, ' + campo.getDecimal() + ')');
       }
       if (tipo === 'BLOB') {
         sql.push(' SUB_TYPE 1 SEGMENT SIZE 80');

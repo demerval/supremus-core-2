@@ -1,11 +1,9 @@
 const ModelManager = require("./estrutura/model/ModelManager");
 const CarregarModelsUtil = require("./estrutura/base/auxx/CarregarModelsUtil");
 const EstruturaVerificar = require("./estrutura/base/EstruturaVerificar");
+const Consulta = require('./sql/Consulta');
 
-const DAO = require('./db/DAO');
-const Status = require('./enuns/Status');
-
-const ModelInsert = require('./estrutura/model/auxx/ModelInsert');
+const ModelPersiste = require('./estrutura/model/ModelPersiste');
 
 module.exports = {
 
@@ -21,52 +19,39 @@ module.exports = {
   },
 
   getModel(nome) {
-    const model = ModelManager.getModel(nome.toLowerCase());
-    if (model !== undefined) {
-      return model;
-    }
-
-    throw new Error(`Model não localizado: ${nome}`);
+    return ModelManager.getModel(nome.toLowerCase());
   },
 
   async modelPersiste(config, dao) {
-    let openDao = (dao === undefined);
-
     try {
-      if (openDao === true) {
-        dao = new DAO();
-        await dao.openConexao(true);
-      }
-
-      let dados = {};
-
-      for (let c of config) {
-        const model = this.getModel(c.id);
-        const teste = model.getDados(c.dados);
-
-        switch (c.status) {
-          case Status.INSERT:
-            await ModelInsert.persiste(dao, model, teste);
-            break;
-        }
-
-        console.log(teste);
-
-      }
-
-      if (openDao === true) {
-        await dao.confirmarTransacao();
-      }
-
-      return dados;
+      const result = await new ModelPersiste().persistir(config, dao);
+      return result;
     } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      if (openDao === true) {
-        if (dao.isConexaoOpen()) {
-          dao.closeConexao();
-        }
-      }
+      throw new Error(error);
+    }
+  },
+
+  async modelConsultar(config, dao) {
+    try {
+      return await new Consulta().consultar(config, dao);
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+
+  async modelConsultarPorId(config, dao) {
+    try {
+      return await new Consulta().consultarPorId(config, dao);
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+
+  async modelConsultaPaginada(config, dao) {
+    try {
+      return await new Consulta().consultaPaginada(config, dao);
+    } catch (error) {
+      throw new Error(error);
     }
   },
 

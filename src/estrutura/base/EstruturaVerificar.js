@@ -25,6 +25,9 @@ class EstruturaVerificar {
         if (model.isVerificar() === false) {
           continue;
         }
+        if (model.nome === 'updateVersao') {
+          continue;
+        }
 
         const config = new EstruturaUtil().prepare(model);
         if (config.configChaveEstrangeira.length > 0) {
@@ -49,8 +52,11 @@ class EstruturaVerificar {
     const configEstruturaVersao = new EstruturaUtil().prepare(require('../base/models/EstruturaVersaoModel'));
     await this._executarVerificacao(configEstruturaVersao);
 
-    const configUpdateVersao = new EstruturaUtil().prepare(require('../base/models/UpdateVersaoModel'));
+    const modelUpdateVersao = require('../base/models/UpdateVersaoModel');
+    const configUpdateVersao = new EstruturaUtil().prepare(modelUpdateVersao);
     await this._executarVerificacao(configUpdateVersao);
+
+    ModelManager.addModel(modelUpdateVersao);
   }
 
   async _executarVerificacao(config) {

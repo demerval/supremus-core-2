@@ -3,13 +3,9 @@ __basedir = path.resolve(__dirname, "../");
 
 const SupremusCore = require('../src/SupremusCore');
 
-const init = () => {
-  return new Promise((resolve, reject) => {
-    SupremusCore
-      .carregarModels(path.join(__basedir, 'test', 'models'))
-      .then(() => resolve())
-      .catch(error => reject(error));
-  });
+const init = async () => {
+  SupremusCore.carregarModels(path.join(__basedir, 'test', 'models'));
+  return true;
 }
 
 const criarUsuarioSuporte = async () => {
@@ -28,12 +24,65 @@ const criarUsuarioSuporte = async () => {
 
     const config = [
       { id: 'usuario', status: 'insert', dados: usuario },
-      //{ id: 'usuarioPermissao', status: 'insert', dados: usuarioPermissao },
+      { id: 'usuarioPermissao', status: 'insert', dados: usuarioPermissao },
     ]
 
     const dados = await SupremusCore.modelPersiste(config);
-    console.log(dados);
+    return dados;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
 
+const atualizarUsuarioSuporte = async (usuario) => {
+  try {
+    usuario.senha = '12345678';
+    usuario.dataAlteracao = new Date().getTime();
+
+    const config = [
+      { id: 'usuario', status: 'update', dados: usuario },
+    ]
+
+    const dados = await SupremusCore.modelPersiste(config);
+    return dados;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+const consultarUsuarioSuporte = async () => {
+  try {
+    const result = await SupremusCore.modelConsultar({
+      key: 'u',
+      tabela: 'usuario',
+      campos: ['id', 'nome', 'dataAlteracao'],
+      joins: [{
+        key: 'up',
+        tabela: 'usuarioPermissao',
+        //joinTipo: 'inner', // inner left right padrao inner
+        joinOn: ['idUsuario', ['u', 'id']],
+        campos: ['id', 'permissao'],
+        criterios: [{ campo: 'permissao', valor: 'admin' }],
+      }],
+      criterios: [{ campo: 'id', valor: [1, 2] }],
+      ordem: ['u.nome', 'up.permissao'],
+    });
+
+    return result;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+const consultarUsuarioSuportePorId = async (id) => {
+  try {
+    const result = await SupremusCore.modelConsultarPorId({
+      id,
+      tabela: 'usuario',
+      campos: ['id', 'nome', 'dataAlteracao'],
+    });
+
+    return result;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -42,34 +91,12 @@ const criarUsuarioSuporte = async () => {
 const teste01 = async () => {
   try {
     await init();
-    await criarUsuarioSuporte();
+    //await criarUsuarioSuporte();
+    const usuario = await consultarUsuarioSuportePorId(1);
+    await atualizarUsuarioSuporte(usuario);
+    const usuarios = await consultarUsuarioSuporte();
+    console.log(usuarios);
 
-    /*const sql = new SqlConsulta();
-    const s = sql.getSql({
-      key: "c",
-      tabela: "cliente",
-      campos: ["id", "nome"],
-      criterios: [
-        {
-          criterio: [
-            { campo: "id", valor: 0, operador: ">=", comparador: "or" },
-            { campo: "id", valor: 10, operador: "<=" }
-          ]
-        },
-        { criterio: { campo: "nome", valor: "demerval", operador: "like" } },
-        { criterio: { campo: "id", valor: [0, 10] } }
-      ],
-      ordem: ["id"]
-    });
-  
-    const s = sql.getSql({
-      key: "c",
-      tabela: "cliente",
-      criterios: [{ criterio: { campo: "id", valor: 10 } }],
-      ordem: ["id", "nome desc"]
-    });
-  
-    console.log(s);*/
   } catch (error) {
     console.log(error.message);
   }

@@ -1,36 +1,48 @@
+const ModelManager = require('../estrutura/model/ModelManager');
+
 const operadores = ["=", ">", "<", "<>", ">=", "<=", "LIKE", "BETWEEN"];
 const ordenadores = ["ASC", "DESC"];
 
 class SqlConsultaUtil {
-  getCriterio(key, model, criterio) {
-    if (criterio === undefined) {
-      return undefined;
-    }
 
+  getCriterio(configs) {
     const criterioConsulta = [];
 
-    for (const c of criterio) {
-      if (c.criterio instanceof Array) {
-        const crs = ["("];
-        let comparador = "";
-        for (const cr of c.criterio) {
-          comparador = cr.comparador ? cr.comparador.toUpperCase() : "AND";
-          const crr = this.getDadosCriterio(key, model, cr);
-          crs.push(crr);
-          crs.push(comparador);
-        }
-
-        crs.pop();
-        crs.push(")");
-        crs.push(comparador);
-        criterioConsulta.push(crs.join(" "));
-      } else {
-        const cr = this.getDadosCriterio(key, model, c.criterio);
-        criterioConsulta.push(cr);
-        criterioConsulta.push(
-          c.criterio.comparador ? c.criterio.comparador.toUpperCase() : "AND"
-        );
+    for (let [key, config] of configs) {
+      const criterios = config.criterios;
+      if (criterios === undefined) {
+        continue;
       }
+
+      const model = ModelManager.getModel(config.tabela);
+
+      for (const c of criterios) {
+        if (c instanceof Array) {
+          const crs = ["("];
+          let comparador = "";
+          for (const cr of c) {
+            comparador = cr.comparador ? cr.comparador.toUpperCase() : "AND";
+            const crr = this.getDadosCriterio(key, model, cr);
+            crs.push(crr);
+            crs.push(comparador);
+          }
+
+          crs.pop();
+          crs.push(")");
+          crs.push(comparador);
+          criterioConsulta.push(crs.join(" "));
+        } else {
+          const cr = this.getDadosCriterio(key, model, c);
+          criterioConsulta.push(cr);
+          criterioConsulta.push(
+            c.comparador ? c.comparador.toUpperCase() : "AND"
+          );
+        }
+      }
+    }
+
+    if (criterioConsulta.length === 0) {
+      return undefined;
     }
 
     criterioConsulta.pop();
@@ -66,28 +78,39 @@ class SqlConsultaUtil {
     return `${key}.${campo.getNome()} ${operador} ${valores.join(" ")}`;
   }
 
-  getDadosOrdem(key, model, ordem) {
+  getDadosOrdem(configs, ordem) {
     if (ordem === undefined) {
       return undefined;
     }
 
+    const key1 = configs.keys().next().value;
+
     const ordens = [];
     for (const ord of ordem) {
       const s = ord.split(" ");
-      const nome = s[0];
+      const op = s[1];
+      let key = key1;
+      let nome = s[0];
+      if (s[0].indexOf('.') > -1) {
+        const s2 = s[0].split('.');
+        key = s2[0];
+        nome = s2[1];
+      }
+
+      const model = ModelManager.getModel(configs.get(key).tabela);
       const campo = model.getCampo(nome);
       if (campo === undefined) {
         throw new Error(`O campo ${nome} não foi localizado.`);
       }
 
-      if (s.length === 1) {
+      if (op === undefined) {
         ordens.push(`${key}.${campo.getNome()}`);
       } else {
-        const op = ordenadores.find(u => u === s[1].toUpperCase());
-        if (op === undefined) {
+        const operador = ordenadores.find(u => u === op.toUpperCase());
+        if (operador === undefined) {
           throw new Error(`Ordenador ${s[1]} não foi localizado. ${ord}`);
         }
-        ordens.push(`${key}.${campo.getNome()} ${op}`);
+        ordens.push(`${key}.${campo.getNome()} ${operador}`);
       }
     }
 

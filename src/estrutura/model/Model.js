@@ -48,7 +48,9 @@ class Model {
     Object.getOwnPropertyNames(dados).forEach(key => {
       const campo = this.campos.get(key);
       if (campo !== undefined) {
-        config.push(campo.getDados(dados[key], key));
+        const c = campo.getDados(dados[key], key);
+        c.push(campo.tipo);
+        config.push(c);
       }
     });
 
@@ -59,8 +61,8 @@ class Model {
     const camposConsulta = [];
 
     if (campos === undefined) {
-      for (const c of this.campos.values()) {
-        camposConsulta.push(`${key}.${c.getNome()}`);
+      for (const [k, c] of this.campos) {
+        camposConsulta.push([key, `${c.getNome()}`, `${key}_${c.getNome()}`, k, c.tipo]);
       }
     } else {
       for (const c of campos) {
@@ -69,14 +71,21 @@ class Model {
           throw new Error(`O campo ${c} não foi localizado.`);
         }
 
-        camposConsulta.push(`${key}.${campo.getNome()}`);
+        camposConsulta.push([key, `${campo.getNome()}`, `${key}_${campo.getNome()}`, c, campo.tipo]);
       }
     }
 
     return camposConsulta;
   }
 
-  async onEstruturaVerificada() { }
+  async onEstruturaVerificada(dao) { }
+
+  async onDadosCarregado(item) { }
+
+  async onAntesPersistir(dao, item, status) { }
+
+  async onDepoisPersistir(dao, item, status) { }
+
 }
 
 module.exports = Model;

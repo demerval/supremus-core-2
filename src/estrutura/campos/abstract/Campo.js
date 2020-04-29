@@ -1,8 +1,10 @@
+const FieldType = require('../../../enuns/FieldType');
+
 class Campo {
 
-  constructor(config) {
+  constructor(config, tipo) {
     this.nome = config.nome.toUpperCase();
-    this.tipo = config.tipo || "varchar";
+    this.tipo = tipo || FieldType.VARCHAR;
     this.chavePrimaria = config.chavePrimaria;
     this.chaveEstrangeira = config.chaveEstrangeira;
     this.tipoCaracter = config.tipoCaracter;
@@ -12,6 +14,10 @@ class Campo {
     this.tamanhoMinimo = config.tamanhoMinimo || -1;
     this.tamanhoMaximo = config.tamanhoMaximo || 60;
     this.valorPadrao = config.valorPadrao || null;
+  }
+
+  static FieldType() {
+    return FieldType;
   }
 
   getNome() {
