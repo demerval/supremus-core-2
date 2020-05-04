@@ -2,11 +2,23 @@ const Campo = require("./abstract/Campo");
 
 class CampoNumber extends Campo {
 
-  constructor(nome, config, tipo = Campo.FieldType().INTEGER) {
-    super(nome, config, config.decimal ? (config.decimal > 0 ? Campo.FieldType().DECIMAL : tipo) : tipo);
-    if (config.tamanhoMaximo === undefined) {
-      this.tamanhoMaximo = -1;
+  constructor(nome, config) {
+    this.tamanhoMaximo = -1;
+    let tipo = Campo.FieldType().INTEGER;
+
+    if (config) {
+      if (config.decimal) {
+        tipo = config.decimal > 0 ? Campo.FieldType().DECIMAL : tipo;
+      }
+      if (config.tipo) {
+        tipo = config.tipo;
+      }
+      if (config.tamanhoMaximo) {
+        this.tamanhoMaximo = config.tamanhoMaximo;
+      }
     }
+
+    this.configure(nome, tipo, config);
   }
 
   getDados(valor, key) {

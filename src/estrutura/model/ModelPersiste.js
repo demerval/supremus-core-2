@@ -4,6 +4,7 @@ const ModelInsert = require('./auxx/ModelInsert');
 const ModelUpdate = require('./auxx/ModelUpdate');
 const ModelDelete = require('./auxx/ModelDelete');
 const Status = require('../../enuns/Status');
+const Consulta = require('../../sql/Consulta');
 
 class ModelPersiste {
 
@@ -44,6 +45,19 @@ class ModelPersiste {
             break;
           default:
             throw new Error('Status inválido.');
+        }
+
+        if (c.consulta) {
+          let configConsulta = c.consulta;
+          const idConsulta = configConsulta.idConsulta;
+          if (idConsulta) {
+            if (configConsulta.criterios === undefined) {
+              configConsulta.criterios = [];
+            }
+            configConsulta.criterios.push({ campo: idConsulta.campo, valor: result[idConsulta.campoResult[0]][idConsulta.campoResult[1]] });
+          }
+
+          result[c.consulta.key] = await new Consulta().consultar(configConsulta, dao);
         }
 
       }

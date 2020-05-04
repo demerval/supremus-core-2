@@ -3,9 +3,14 @@ const CaseType = require('../../enuns/CaseType');
 const md5 = require('js-md5');
 
 class CampoString extends Campo {
-  constructor(nome, config, password) {
-    super(nome, config);
-    this.password = password || false;
+  constructor(nome, config) {
+    this.password = false;
+    if (config) {
+      if (config.password) {
+        this.password = config.password;
+      }
+    }
+    this.configure(nome, Campo.FieldType().VARCHAR, config);
   }
 
   getDados(valor, key) {
