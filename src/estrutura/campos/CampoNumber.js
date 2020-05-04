@@ -2,8 +2,8 @@ const Campo = require("./abstract/Campo");
 
 class CampoNumber extends Campo {
 
-  constructor(config, tipo = Campo.FieldType().INTEGER) {
-    super(config, config.decimal ? (config.decimal > 0 ? Campo.FieldType().DECIMAL : tipo) : tipo);
+  constructor(nome, config, tipo = Campo.FieldType().INTEGER) {
+    super(nome, config, config.decimal ? (config.decimal > 0 ? Campo.FieldType().DECIMAL : tipo) : tipo);
     if (config.tamanhoMaximo === undefined) {
       this.tamanhoMaximo = -1;
     }
@@ -44,6 +44,16 @@ class CampoNumber extends Campo {
   getValorSql(valor) {
     if (valor === undefined || valor === null) {
       return 'NULL';
+    }
+
+    if (typeof valor === 'string') {
+      valor = valor.replace('.', '');
+      if (this.tipo === Campo.FieldType().DECIMAL) {
+        valor = valor.replace(',', '.');
+        return valor;
+      }
+
+      return valor;
     }
 
     return valor;

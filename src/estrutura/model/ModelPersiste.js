@@ -2,6 +2,7 @@ const DAO = require('../../db/DAO');
 const ModelManager = require('./ModelManager');
 const ModelInsert = require('./auxx/ModelInsert');
 const ModelUpdate = require('./auxx/ModelUpdate');
+const ModelDelete = require('./auxx/ModelDelete');
 const Status = require('../../enuns/Status');
 
 class ModelPersiste {
@@ -37,8 +38,13 @@ class ModelPersiste {
             const itemUpdate = await ModelUpdate.persiste(dao, model, dados);
             result[c.id] = itemUpdate;
             break;
+          case Status.DELETE:
+            const itemDelete = await ModelDelete.persiste(dao, model, dados);
+            result[c.id] = itemDelete;
+            break;
+          default:
+            throw new Error('Status inválido.');
         }
-
 
       }
 

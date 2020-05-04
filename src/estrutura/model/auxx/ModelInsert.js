@@ -52,5 +52,5 @@ async function gerarId(dao, nomeTabela, campoChave) {
     id = id + codReplicar;
   }
 
-  return campo.getDados(id, key);
+  return campo.getDados(parseInt(id, 10), key);
 }

@@ -2,8 +2,8 @@ const FieldType = require('../../../enuns/FieldType');
 
 class Campo {
 
-  constructor(config, tipo) {
-    this.nome = config.nome.toUpperCase();
+  constructor(nome, config, tipo) {
+    this.nome = nome.toUpperCase();
     this.tipo = tipo || FieldType.VARCHAR;
     this.chavePrimaria = config.chavePrimaria;
     this.chaveEstrangeira = config.chaveEstrangeira;

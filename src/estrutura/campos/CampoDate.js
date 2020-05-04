@@ -3,8 +3,8 @@ const moment = require('moment');
 
 class CampoDate extends Campo {
 
-  constructor(config, dataUpdate) {
-    super(config, dataUpdate === true ? Campo.FieldType().BIG_INT : Campo.FieldType().DATE);
+  constructor(nome, config, dataUpdate) {
+    super(nome, config, dataUpdate === true ? Campo.FieldType().BIG_INT : Campo.FieldType().DATE);
     this.dataUpdate = dataUpdate || false;
   }
 
