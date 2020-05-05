@@ -3,6 +3,8 @@ const Campo = require("./abstract/Campo");
 class CampoNumber extends Campo {
 
   constructor(nome, config) {
+    super();
+
     this.tamanhoMaximo = -1;
     let tipo = Campo.FieldType().INTEGER;
 

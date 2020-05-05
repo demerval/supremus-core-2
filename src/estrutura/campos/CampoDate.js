@@ -4,6 +4,8 @@ const moment = require('moment');
 class CampoDate extends Campo {
 
   constructor(nome, config) {
+    super();
+
     this.dataUpdate = false;
     if (config) {
       this.dataUpdate = config.dataUpdate || false;

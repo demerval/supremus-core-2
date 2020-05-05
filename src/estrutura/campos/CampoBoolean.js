@@ -3,6 +3,8 @@ const Campo = require("./abstract/Campo");
 class CampoBoolean extends Campo {
 
   constructor(nome, config) {
+    super();
+
     this.configure(nome, Campo.FieldType().BOOLEAN, config);
   }
 

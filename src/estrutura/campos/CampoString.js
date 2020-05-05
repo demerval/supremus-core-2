@@ -3,7 +3,10 @@ const CaseType = require('../../enuns/CaseType');
 const md5 = require('js-md5');
 
 class CampoString extends Campo {
+
   constructor(nome, config) {
+    super();
+
     this.password = false;
     if (config) {
       if (config.password) {
