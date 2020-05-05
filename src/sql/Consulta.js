@@ -14,6 +14,19 @@ class Consulta {
         await dao.openConexao();
       }
 
+      if (config instanceof Array) {
+        let rowsResult = {};
+
+        for (let c of config) {
+          const dados = new SqlConsulta().getDadosConsulta(c);
+          const rows = await dao.executarSql(dados.sql);
+
+          rowsResult[c.key] = rows;
+        }
+
+        return await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rowsResult);
+      }
+
       const dados = new SqlConsulta().getDadosConsulta(config);
       const rows = await dao.executarSql(dados.sql);
 
