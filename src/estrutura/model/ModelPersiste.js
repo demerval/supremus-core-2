@@ -19,7 +19,7 @@ class ModelPersiste {
 
       let result = {};
 
-      for (let c of config) {
+      for (let c of config.persistir) {
         const model = ModelManager.getModel(c.id);
         const dados = model.getDados(c.dados);
 
@@ -47,8 +47,10 @@ class ModelPersiste {
             throw new Error('Status inválido.');
         }
 
-        if (c.consulta) {
-          let configConsulta = c.consulta;
+      }
+
+      if (config.consultar) {
+        for (let configConsulta of config.consultar) {
           const idConsulta = configConsulta.idConsulta;
           if (idConsulta) {
             if (configConsulta.criterios === undefined) {
@@ -57,9 +59,8 @@ class ModelPersiste {
             configConsulta.criterios.push({ campo: idConsulta.campo, valor: result[idConsulta.campoResult[0]][idConsulta.campoResult[1]] });
           }
 
-          result[c.consulta.key] = await new Consulta().consultar(configConsulta, dao);
+          result[configConsulta.key] = await new Consulta().consultar(configConsulta, dao);
         }
-
       }
 
       if (openDao === true) {
