@@ -22,7 +22,7 @@ class Consulta {
           let rows = await dao.executarSql(dados.sql);
 
           if (c.subConsultas) {
-            this._subConsulta(dao, dados.campos, c.subConsultas, rows);
+            await this._subConsulta(dao, dados.campos, c.subConsultas, rows);
           }
 
           rowsResult[c.key] = await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rows);
@@ -35,7 +35,7 @@ class Consulta {
       let rows = await dao.executarSql(dados.sql);
 
       if (config.subConsultas) {
-        this._subConsulta(dao, dados.campos, config.subConsultas, rows);
+        await this._subConsulta(dao, dados.campos, config.subConsultas, rows);
       }
 
       return await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rows);
@@ -69,7 +69,7 @@ class Consulta {
       let rows = await dao.executarSql(dados.sql);
 
       if (config.subConsultas) {
-        this._subConsulta(dao, dados.campos, config.subConsultas, rows);
+        await this._subConsulta(dao, dados.campos, config.subConsultas, rows);
       }
 
       if (rows.length > 0) {
