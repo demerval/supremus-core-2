@@ -5,7 +5,7 @@ class CampoNumber extends Campo {
   constructor(nome, config) {
     super();
 
-    this.tamanhoMaximo = -1;
+    let tamanhoMaximo = -1;
     let tipo = Campo.FieldType().INTEGER;
 
     if (config) {
@@ -16,8 +16,12 @@ class CampoNumber extends Campo {
         tipo = config.tipo;
       }
       if (config.tamanhoMaximo) {
-        this.tamanhoMaximo = config.tamanhoMaximo;
+        tamanhoMaximo = config.tamanhoMaximo;
       }
+
+      config.tamanhoMaximo = tamanhoMaximo;
+    } else {
+      config = { tamanhoMaximo };
     }
 
     this.configure(nome, tipo, config);

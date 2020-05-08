@@ -8,13 +8,13 @@ class SqlConsulta {
     this.configs = new Map();
   }
 
-  getDadosConsulta(config, isPaginado = false) {
+  getDadosConsulta(config, isPaginado = false, subConsulta) {
     if (config instanceof Array) {
       return "";
     }
 
     let paginado = isPaginado === true ? `FIRST ${config.qtdeRegistros} SKIP ${config.pagina * config.qtdeRegistros} ` : '';
-    const dados = this.getDados(config);
+    const dados = this.getDados(config, subConsulta);
     const campos = dados.campos.map(c => `${c[0]}.${c[1]} AS ${c[2]}`);
     let sql = `SELECT ${paginado}${campos.join(', ')} FROM ${dados.tabela}`;
     if (dados.joins) {
@@ -50,7 +50,7 @@ class SqlConsulta {
     };
   }
 
-  getDados(config) {
+  getDados(config, subConsulta) {
     this.configs.set(config.key, { tabela: config.tabela.toLowerCase(), criterios: config.criterios });
 
     const model = ModelManager.getModel(config.tabela.toLowerCase());
@@ -68,7 +68,13 @@ class SqlConsulta {
       }
     }
 
-    const criterio = this.sqlUtil.getCriterio(this.configs);
+    let criterio = this.sqlUtil.getCriterio(this.configs);
+    if (subConsulta !== undefined) {
+      if (criterio === undefined) {
+        criterio = '';
+      }
+      criterio += `${config.key}.${this._getCampo(config.link[0], campos)} = ${this._getValor(config.link[1], subConsulta)}`;
+    }
 
     const ordem = this.sqlUtil.getDadosOrdem(this.configs, config.ordem);
 
@@ -105,6 +111,24 @@ class SqlConsulta {
     }
 
     return `${campo[0]}.${campoModel.getNome()}`;
+  }
+
+  _getCampo(key, campos) {
+    const campo = campos.find(c => c[3] === key);
+    if (campo === undefined) {
+      throw new Error(`O campo ${key} não foi localizado.`);
+    }
+
+    return campo[1];
+  }
+
+  _getValor(key, subConsulta) {
+    const campo = subConsulta.campos.find(d => d[3]);
+    if (campo === undefined) {
+      throw new Error(`O campo ${key} não foi localizado.`);
+    }
+
+    return subConsulta.row[campo[2].toUpperCase()];
   }
 
 }

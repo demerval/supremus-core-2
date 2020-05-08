@@ -19,16 +19,24 @@ class Consulta {
 
         for (let c of config) {
           const dados = new SqlConsulta().getDadosConsulta(c);
-          const rows = await dao.executarSql(dados.sql);
+          let rows = await dao.executarSql(dados.sql);
 
-          rowsResult[c.key] = rows;
+          if (c.subConsultas) {
+            this._subConsulta(dao, dados.campos, c.subConsultas, rows);
+          }
+
+          rowsResult[c.key] = await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rows);
         }
 
-        return await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rowsResult);
+        return rowsResult;
       }
 
       const dados = new SqlConsulta().getDadosConsulta(config);
-      const rows = await dao.executarSql(dados.sql);
+      let rows = await dao.executarSql(dados.sql);
+
+      if (config.subConsultas) {
+        this._subConsulta(dao, dados.campos, config.subConsultas, rows);
+      }
 
       return await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rows);
     } catch (error) {
@@ -58,7 +66,11 @@ class Consulta {
       config.criterios = [{ campo: chaveCampo[0], valor: config.id }];
 
       const dados = new SqlConsulta().getDadosConsulta(config);
-      const rows = await dao.executarSql(dados.sql);
+      let rows = await dao.executarSql(dados.sql);
+
+      if (config.subConsultas) {
+        this._subConsulta(dao, dados.campos, config.subConsultas, rows);
+      }
 
       if (rows.length > 0) {
         const result = await ModelConverter.criarModelConsulta(dados.configs, dados.campos, rows);
@@ -103,6 +115,19 @@ class Consulta {
         if (dao.isConexaoOpen()) {
           dao.closeConexao();
         }
+      }
+    }
+  }
+
+  async _subConsulta(dao, campos, subConsultas, rows) {
+    for (let cs of subConsultas) {
+      for (let row of rows) {
+        const subConfig = { campos, row }
+
+        const dadosSub = new SqlConsulta().getDadosConsulta(cs, false, subConfig);
+        const rowsSub = await dao.executarSql(dadosSub.sql);
+
+        row[cs.key] = await ModelConverter.criarModelConsulta(dadosSub.configs, dadosSub.campos, rowsSub);
       }
     }
   }

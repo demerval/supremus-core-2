@@ -62,7 +62,7 @@ class Model {
 
     if (campos === undefined) {
       for (const [k, c] of this.campos) {
-        camposConsulta.push([key, `${c.getNome()}`, `${key}_${c.getNome()}`, k, c.tipo]);
+        camposConsulta.push([key, c.getNome(), `${key}_${c.getNome()}`, k, c.tipo]);
       }
     } else {
       for (const c of campos) {
@@ -71,7 +71,7 @@ class Model {
           throw new Error(`O campo ${c} não foi localizado.`);
         }
 
-        camposConsulta.push([key, `${campo.getNome()}`, `${key}_${campo.getNome()}`, c, campo.tipo]);
+        camposConsulta.push([key, campo.getNome(), `${key}_${campo.getNome()}`, c, campo.tipo]);
       }
     }
 

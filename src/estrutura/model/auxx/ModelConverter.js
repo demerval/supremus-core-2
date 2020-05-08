@@ -45,7 +45,9 @@ module.exports = {
         if (s0 === key1) {
           item[map[name].nome] = getValor(map[name].tipo, valor);
         } else {
-          if (item[s0]) {
+          if (map[s0] === undefined) {
+            item[name] = valor;
+          } else if (item[s0]) {
             item[s0] = { ...item[s0], [map[s0][name].nome]: getValor(map[s0][name].tipo, valor) };
           } else {
             item[s0] = { [map[s0][name].nome]: getValor(map[s0][name].tipo, valor) };

@@ -23,7 +23,7 @@ class CampoDate extends Campo {
       return [key, this.nome, valor, this.unico, this.isChavePrimaria()];
     }
 
-    if (valor === undefined || valor === null) {
+    if (valor === undefined || valor === null || valor === '') {
       if (this.obrigatorio === true) {
         if (this.valorPadrao !== null) {
           return [key, this.nome, this.valorPadrao, this.unico, this.isChavePrimaria()];

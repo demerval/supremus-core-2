@@ -9,8 +9,8 @@ module.exports = {
 
       const indice = await this._indiceChaveEstrangeira(dao, config.nomeTabela);
       const nomeFk = `FK_${config.nomeTabela}_${indice}`;
-      const onUpdate = config.onUpdate ? config.onUpdate.toUpperCase() : 'RESTRICT';
-      const onDelete = config.onDelete ? config.onDelete.toUpperCase() : 'RESTRICT';
+      const onUpdate = config.onUpdate ? config.onUpdate.toUpperCase() : 'NO ACTION';
+      const onDelete = config.onDelete ? config.onDelete.toUpperCase() : 'NO ACTION';
 
       const sql = "alter table " + config.nomeTabela + " "
         + "add constraint " + nomeFk + " "
